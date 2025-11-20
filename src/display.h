@@ -5,4 +5,8 @@
 
 void display(String str);
 
+void initSerial(long baud=9600);
+
+bool isSerialInit();
+
 #endif //DISPLAY_H
