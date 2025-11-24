@@ -1,8 +1,8 @@
-#ifndef DISPLAY_H
-#define DISPLAY_H
+// #ifndef DISPLAY_H
+// #define DISPLAY_H
 
-#include <Arduino.h>
+// #include <Arduino.h>
 
-void display(String str);
+// void display(String str);
 
-#endif //DISPLAY_H
+// #endif //DISPLAY_H
