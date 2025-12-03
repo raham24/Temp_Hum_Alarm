@@ -1,6 +1,10 @@
 #include "test.h"
 #include "server.h"
 #include <Arduino.h>
+#include <ArduinoJson.h>
+
+JsonDocument test;
+String jsonString;
 
 void handleTestRoute() {
     Serial.begin(9600);
@@ -10,8 +14,11 @@ void handleTestRoute() {
     server.sendHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
 
-    String message = "Hello from ESP32 API! Test route is working.";
-    server.send(200, "text/plain", message);
+    test["message"] = "Hello from ESP32 API! Test route is working.";
+    test["Date"] = 1234555;
+    serializeJson(test, jsonString);
+    
+    server.send(200, "test", jsonString);
     Serial.println("Test route accessed");
 }
 
