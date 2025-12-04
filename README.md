@@ -14,3 +14,5 @@ Create a `config.h` file in the src folder with your WPA2 Enterprise credentials
 ```
 
 **Note:** Make sure to add `config.h` to your `.gitignore` to keep your credentials secure.
+
+Code for UI can be found here: https://git.cs.hofstra.edu/h703168431/final_project_ui
