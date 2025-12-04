@@ -8,9 +8,13 @@
 #define DHTTYPE DHT11
 
 extern JsonDocument temp;
+extern unsigned long lastTempReadTime;
 
+void initTemp();
 void getTemp();
 
 void registerTempRoute();
+void handleTempGet();
+void updateTempReadings();
 
 #endif
