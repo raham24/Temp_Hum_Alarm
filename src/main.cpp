@@ -1,14 +1,15 @@
 #include <Arduino.h>
 #include "display.h"
 #include "UI_task.h"
+
 #include "wifi/wifi.h"
 #include "api/server.h"
+
 #include "temp/temp.h"
 #include "sensor_task.h"
 
 
-// UI_task UI_t("UI_task", 4096, 2);
-// UI_task UI_t2("UI_task2", 4096, 2);
+
 UI_task UI_t("UI_task", 4096, 2);
 UI_task UI_t2("UI_task2", 4096, 2);
 Sensor sensor("sensor_task", 4096, 2);

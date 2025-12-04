@@ -1,7 +1,7 @@
-// #include "display.h"
+#include "display.h"
 
-// void display(String str) {
+void display(String str) {
 
-//     Serial.println(str);
+    Serial.println(str);
 
-// }
+}
