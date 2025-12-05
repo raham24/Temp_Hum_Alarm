@@ -1,21 +1,17 @@
 #include <Arduino.h>
-#include "display_task.h"
-#include "led_task.h"
-#include "alarm_task.h"
+#include "display/display_task.h"
 #include "wifi/wifi.h"
 #include "api/server.h"
 #include "temp/temp.h"
-#include "alarm_task.h"
-#include "led_task.h"
+#include "alarm/alarm_task.h"
+#include "led/led_task.h"
 #include "pins.h"
 
 SensorTask sensorTask;      
 DisplayTask displayTask;    
-LedTask ledTask;
-AlarmTask alarmTask;
+LedTask ledTask(LED_PIN);
+AlarmTask alarmTask(BUZZER_PIN);
 
-UI_task UI_t("UI_task", 4096, 2);
-UI_task UI_t2("UI_task2", 4096, 2);
 //Sensor sensor("sensor_task", 4096, 2);
 // Alarm task test - using centralized pin definition
 AlarmTask alarmTask(BUZZER_PIN);
@@ -32,24 +28,12 @@ void setup() {
   displayTask.begin();    // OLED display
   ledTask.begin();        // LED indicator
   alarmTask.begin();      // Alarm buzzer control
-  // Serial.println("hello world");
-  // Serial.print(UI_t.isConstructed());
-  // Serial.print(UI_t2.isConstructed());
-  // Serial.println("UI taskHandle = "+String((uint32_t)UI_t.getTaskHandle()));
-  // UI_t.run();
-  // delay(10000);
-  //initSerial(9600);
-  Serial.println("hello world");
-  Serial.print(UI_t.isConstructed());
-  Serial.print(UI_t2.isConstructed());
-  Serial.println("UI taskHandle = "+String((uint32_t)UI_t.getTaskHandle()));
-  UI_t.run();
-  delay(10000);
 
   // Initialize alarm task
   alarmTask.begin();
-  ledTask.begin();
   Serial.println("Alarm Task initialized");
+  // Initialize LED task
+  ledTask.begin();
   Serial.println("LED Task initialized");
 }
 
