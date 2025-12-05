@@ -4,39 +4,107 @@
 #include "temp.h"
 #include "../api/server.h"
 
-DHT dht(DHTPIN,DHTTYPE);
+// Global FreeRTOS queue for sharing sensor readings
+QueueHandle_t sensorDataQueue = nullptr;
 
+// Global SensorTask instance
+SensorTask sensorTask;
+
+// Static DHT instance for utility functions (like heat index calculation)
+DHT dht(DHTPIN, DHTTYPE);
+
+// JSON document and string for temperature data
 JsonDocument temp;
 String jsonTemp;
+
 unsigned long lastTempReadTime = 0;
 const unsigned long TEMP_READ_INTERVAL = 5000; // 5 seconds
 
-void initTemp() {
-    dht.begin();
-    Serial.println("DHT sensor initialized");
+// SensorTask Constructor
+SensorTask::SensorTask()
+    : _dht(nullptr),         // DHT sensor object pointer
+      _handle(nullptr),      // RTOS task handle
+      _temperature(0.0f),    // initialize temperature
+      _humidity(0.0f),       // initialize humidity
+      _valid(false)          // initialize validity flag
+{
 }
 
+// Initialize sensor and start FreeRTOS task
+void SensorTask::begin() {
+    // Create DHT instance on defined pin and type
+    _dht = new DHT(DHTPIN, DHTTYPE);
+    _dht->begin(); // initialize sensor
+    Serial.println("DHT sensor initialized");
+
+    // Create queue to hold 1 sensor reading (float[3]: temp, hum, valid)
+    // Queue length must be 1 when using xQueueOverwrite()
+    sensorDataQueue = xQueueCreate(1, 3 * sizeof(float));
+
+    // Create FreeRTOS task for periodic sensor polling
+    xTaskCreate(
+        taskFunction,        // task function pointer
+        "TEMP_SENSOR_TASK",  // task name
+        4096,                // stack size (bytes)
+        this,                // pass this object as parameter
+        1,                   // task priority
+        &_handle             // task handle
+    );
+}
+
+// RTOS task function for polling DHT11
+void SensorTask::taskFunction(void* pvParameters) {
+    SensorTask* self = static_cast<SensorTask*>(pvParameters); // cast parameter to object
+
+    while (true) { // infinite RTOS loop
+        // read humidity and temperature from DHT
+        float h = self->_dht->readHumidity();
+        float t = self->_dht->readTemperature();
+
+        // check for valid readings
+        if (isnan(h) || isnan(t)) {
+            self->_valid = false; // invalid reading
+            Serial.println("Failed to read from DHT sensor!");
+        } else {
+            self->_temperature = t; // store temperature
+            self->_humidity = h;    // store humidity
+            self->_valid = true;    // mark reading valid
+        }
+
+        // Push data to queue as float array [temp, hum, valid]
+        float data[3] = { self->_temperature, self->_humidity, self->_valid ? 1.0f : 0.0f };
+        xQueueOverwrite(sensorDataQueue, &data);
+
+        // Wait 2 seconds before next reading
+        vTaskDelay(pdMS_TO_TICKS(2000));
+    }
+}
+
+// Initialize temperature sensor task
+void initTemp() {
+    sensorTask.begin();
+}
+
+// Get latest temperature readings and populate JSON
 void getTemp() {
+    // Get readings from sensor task
+    float t = sensorTask.getTemperature();
+    float h = sensorTask.getHumidity();
+    bool valid = sensorTask.isValid();
 
-    delay(500);
-    // Read Humidity
-    float h = dht.readHumidity();
-    // Read temperature as Celsius (the default)
-    float t = dht.readTemperature();
-    // Read temperature as Fahrenheit (isFahrenheit = true)
-    float f = dht.readTemperature(true);
-
-    // Check if any reads failed and exit early (to try again).
-    if (isnan(h) || isnan(t) || isnan(f)) {
-        Serial.println(F("Failed to read from DHT sensor!"));
+    // Check if reading is valid
+    if (!valid) {
         temp["error"] = "Failed to read from DHT sensor";
         return;
     }
 
-    // else print info
-    // Compute heat index in Fahrenheit (the default)
+    // Compute temperature in Fahrenheit
+    float f = (t * 9.0 / 5.0) + 32.0;
+
+    // Compute heat index in Fahrenheit
     float hif = dht.computeHeatIndex(f, h);
-    // Compute heat index in Celsius (isFahreheit = false)
+
+    // Compute heat index in Celsius
     float hic = dht.computeHeatIndex(t, h, false);
 
     temp.clear();
@@ -45,7 +113,6 @@ void getTemp() {
     temp["humidity"] = h;
     temp["heatC"] = hic;
     temp["heatF"] = hif;
-
 }
 
 void handleTempOptions() {

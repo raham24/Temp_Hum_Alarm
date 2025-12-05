@@ -1,5 +1,5 @@
 #include "display_task.h"
-#include "sensor_task.h"
+#include "temp/temp.h"
 
 DisplayTask::DisplayTask()
     : _enabled(true),     // display starts enabled

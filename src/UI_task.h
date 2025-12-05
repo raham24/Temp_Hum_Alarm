@@ -18,9 +18,9 @@ class UI_task:public Task {
  }
     
     virtual void run() {
-        while (!isSerialInit) {
-            delay(100);
-        }
+        // while (!isSerialInit) {
+        //     delay(100);
+        // }
         Serial.println("Hello from UI task");
         delay(1000);
 
