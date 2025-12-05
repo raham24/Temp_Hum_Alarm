@@ -5,6 +5,8 @@
 #include <U8g2lib.h>
 #include <Wire.h>
 
+extern QueueHandle_t sensorDataQueue;
+
 class DisplayTask {
 public:
     DisplayTask();               // Constructor: initialize members
