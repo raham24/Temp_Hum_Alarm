@@ -7,23 +7,38 @@
 #include "led/led_task.h"
 #include "pins.h"
 
+// Tasks
 SensorTask sensorTask;      
 DisplayTask displayTask;    
 LedTask ledTask(LED_PIN);
 AlarmTask alarmTask(BUZZER_PIN);
 
-//Sensor sensor("sensor_task", 4096, 2);
-// Alarm task test - using centralized pin definition
-AlarmTask alarmTask(BUZZER_PIN);
+void setAlarmEnabled(bool enable) {
+  alarmTask.setEnabled(enable);
+  Serial.print("Alarm ");
+  Serial.println(enable ? "ENABLED" : "DISABLED");
+}
 
-LedTask ledTask(LED_PIN);
+void setLedEnabled(bool enable) {
+  ledTask.setEnabled(enable);
+  Serial.print("LED ");
+  Serial.println(enable ? "ENABLED" : "DISABLED");
+}
+
+void setDisplayEnabled(bool enable) {
+  displayTask.setEnabled(enable);
+  Serial.print("Display ");
+  Serial.println(enable ? "ENABLED" : "DISABLED");
+}
 
 void setup() {
   Serial.begin(9600);
   Serial.println("Starting Setup");
+
   connect_wifi();
   initTemp();
   startServer();
+
   sensorTask.begin();     // DHT11 readings
   displayTask.begin();    // OLED display
   ledTask.begin();        // LED indicator
@@ -32,6 +47,7 @@ void setup() {
   // Initialize alarm task
   alarmTask.begin();
   Serial.println("Alarm Task initialized");
+
   // Initialize LED task
   ledTask.begin();
   Serial.println("LED Task initialized");
