@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "display/display_task.h"
 #include "wifi/wifi.h"
-#include "api/server.h"
+#include "server/server.h"
 #include "temp/temp.h"
 #include "alarm/alarm_task.h"
 #include "led/led_task.h"

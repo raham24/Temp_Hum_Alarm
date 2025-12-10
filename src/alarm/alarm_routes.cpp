@@ -2,7 +2,7 @@
 #include <ArduinoJson.h>
 #include "alarm_routes.h"
 #include "alarm_task.h"
-#include "../api/server.h"
+#include "../server/server.h"
 
 // JSON document and string for alarm state
 JsonDocument alarmDoc;

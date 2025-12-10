@@ -1,7 +1,7 @@
 #include "alarm_task.h"
 
 AlarmTask::AlarmTask(uint8_t pin)
-    : _pin(pin), _enabled(false), _alarmCondition(false), _handle(nullptr) // initialize members
+    : _pin(pin), _enabled(true), _alarmCondition(false), _handle(nullptr) // initialize members
 {
 }
 
