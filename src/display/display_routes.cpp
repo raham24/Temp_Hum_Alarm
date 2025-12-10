@@ -2,7 +2,7 @@
 #include <ArduinoJson.h>
 #include "display_routes.h"
 #include "display_task.h"
-#include "../api/server.h"
+#include "../server/server.h"
 
 // JSON document and string for display state
 JsonDocument displayDoc;

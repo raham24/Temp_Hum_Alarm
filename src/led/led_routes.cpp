@@ -2,7 +2,7 @@
 #include <ArduinoJson.h>
 #include "led_routes.h"
 #include "led_task.h"
-#include "../api/server.h"
+#include "../server/server.h"
 
 // JSON document and string for LED state
 JsonDocument ledDoc;

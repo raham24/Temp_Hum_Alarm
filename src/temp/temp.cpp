@@ -2,7 +2,7 @@
 #include <ArduinoJson.h>
 #include "DHT.h"
 #include "temp.h"
-#include "../api/server.h"
+#include "../server/server.h"
 
 // Global FreeRTOS queue for sharing sensor readings
 QueueHandle_t sensorDataQueue = nullptr;

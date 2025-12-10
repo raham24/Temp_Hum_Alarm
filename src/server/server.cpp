@@ -11,7 +11,6 @@ WebServer server(80);
 void startServer() {
     Serial.begin(9600);
     // Register routes
-    registerTestRoutes();
     registerTempRoute();
     registerAlarmRoute();
     registerLedRoute();
