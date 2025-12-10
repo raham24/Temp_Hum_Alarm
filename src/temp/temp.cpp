@@ -7,9 +7,6 @@
 // Global FreeRTOS queue for sharing sensor readings
 QueueHandle_t sensorDataQueue = nullptr;
 
-// Global SensorTask instance
-SensorTask sensorTask;
-
 // Static DHT instance for utility functions (like heat index calculation)
 DHT dht(DHTPIN, DHTTYPE);
 

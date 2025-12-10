@@ -13,22 +13,39 @@ DisplayTask displayTask;
 LedTask ledTask(LED_PIN);
 AlarmTask alarmTask(BUZZER_PIN);
 
-void setAlarmEnabled(bool enable) {
-  alarmTask.setEnabled(enable);
-  Serial.print("Alarm ");
-  Serial.println(enable ? "ENABLED" : "DISABLED");
-}
 
-void setLedEnabled(bool enable) {
-  ledTask.setEnabled(enable);
-  Serial.print("LED ");
-  Serial.println(enable ? "ENABLED" : "DISABLED");
-}
+// Temperature monitoring - controls display error message and alarm condition
+void checkTemperatureAlarm() {
+  // Get current temperature from sensor task
+  float temperature = sensorTask.getTemperature();
+  bool sensorValid = sensorTask.isValid();
 
-void setDisplayEnabled(bool enable) {
-  displayTask.setEnabled(enable);
-  Serial.print("Display ");
-  Serial.println(enable ? "ENABLED" : "DISABLED");
+  if (!sensorValid) {
+    return; // Skip if sensor reading is invalid
+  }
+
+  // Check temperature thresholds
+  if (temperature > 30.0 || temperature < 20.0) {
+    // Temperature is out of range
+    // Set alarm condition active - buzzer/LED will only work if also enabled by user
+    alarmTask.setAlarmCondition(true);
+    ledTask.setAlarmCondition(true);
+
+    // Show error message on display
+    if (temperature > 30.0) {
+      displayTask.setErrorMessage("Temp too high!");
+    } else {
+      displayTask.setErrorMessage("Temp too low!");
+    }
+  } else {
+    // Temperature is normal
+    // Deactivate alarm condition - buzzer/LED will stop even if enabled
+    alarmTask.setAlarmCondition(false);
+    ledTask.setAlarmCondition(false);
+
+    // Clear error message
+    displayTask.setErrorMessage(nullptr);
+  }
 }
 
 void setup() {
@@ -44,42 +61,13 @@ void setup() {
   ledTask.begin();        // LED indicator
   alarmTask.begin();      // Alarm buzzer control
 
-  // Initialize alarm task
-  alarmTask.begin();
-  Serial.println("Alarm Task initialized");
-
-  // Initialize LED task
-  ledTask.begin();
-  Serial.println("LED Task initialized");
+  Serial.println("All tasks initialized");
 }
 
 void loop() {
   handleClient();
   updateTempReadings();
-
-  // Test alarm: Turn on for 5 seconds, off for 5 seconds
-  static unsigned long lastToggle = 0;
-  static bool alarmState = false;
-
-  if (millis() - lastToggle > 5000) {
-    alarmState = !alarmState;
-    alarmTask.setEnabled(alarmState);
-    Serial.print("Alarm ");
-    Serial.println(alarmState ? "ON" : "OFF");
-    lastToggle = millis();
-  }
-
-  // Test LED: Toggle every 1 second
-  static unsigned long lastLedToggle = 0;
-  static bool ledState = false;
-
-  if (millis() - lastLedToggle > 1000) {
-    ledState = !ledState;
-    ledTask.setEnabled(ledState);
-    Serial.print("LED ");
-    Serial.println(ledState ? "ON" : "OFF");
-    lastLedToggle = millis();
-  }
+  checkTemperatureAlarm();
 
   delay(10);
 }

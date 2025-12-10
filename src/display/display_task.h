@@ -12,12 +12,16 @@ public:
     DisplayTask();               // Constructor: initialize members
     void begin();                // Initialize OLED and create FreeRTOS task
     void setEnabled(bool enable);// Enable/disable display
+    bool getEnabled() { return _enabled; } // Get current display state
+    void setErrorMessage(const char* message); // Set error message to display
 
 private:
     static void taskFunction(void* pvParameters); // RTOS task function
 
     bool _enabled;               // Display enabled/disabled state
     TaskHandle_t _handle;        // FreeRTOS task handle
+    char _errorMessage[64];      // Error message buffer
+    bool _hasError;              // Flag indicating if error message is set
 
     U8G2_SSD1306_128X64_NONAME_1_HW_I2C* _u8g2; // OLED display object
 };

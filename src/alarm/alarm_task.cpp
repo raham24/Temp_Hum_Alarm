@@ -1,7 +1,7 @@
 #include "alarm_task.h"
 
 AlarmTask::AlarmTask(uint8_t pin)
-    : _pin(pin), _enabled(false), _handle(nullptr) // initialize members
+    : _pin(pin), _enabled(false), _alarmCondition(false), _handle(nullptr) // initialize members
 {
 }
 
@@ -17,11 +17,16 @@ void AlarmTask::setEnabled(bool enable) {
     _enabled = enable;             // update buzzer state
 }
 
+void AlarmTask::setAlarmCondition(bool active) {
+    _alarmCondition = active;      // update alarm condition state
+}
+
 void AlarmTask::taskFunction(void* pvParameters) {
     AlarmTask* self = static_cast<AlarmTask*>(pvParameters); // cast to object
 
     while (true) {                 // infinite loop
-        if (self->_enabled) {      // only sound buzzer when enabled
+        // Only sound buzzer when BOTH enabled AND alarm condition is active
+        if (self->_enabled && self->_alarmCondition) {
             digitalWrite(self->_pin, HIGH); // turn buzzer on
             vTaskDelay(pdMS_TO_TICKS(200)); // beep duration
             digitalWrite(self->_pin, LOW);  // turn buzzer off

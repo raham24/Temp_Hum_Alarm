@@ -1,6 +1,9 @@
 #include "server.h"
 #include "test.h"
 #include "../temp/temp.h"
+#include "../alarm/alarm_routes.h"
+#include "../led/led_routes.h"
+#include "../display/display_routes.h"
 #include <Arduino.h>
 
 WebServer server(80);
@@ -10,6 +13,9 @@ void startServer() {
     // Register routes
     registerTestRoutes();
     registerTempRoute();
+    registerAlarmRoute();
+    registerLedRoute();
+    registerDisplayRoute();
 
     // Start the server
     server.begin();
