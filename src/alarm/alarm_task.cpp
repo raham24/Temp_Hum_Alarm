@@ -21,6 +21,10 @@ void AlarmTask::setAlarmCondition(bool active) {
     _alarmCondition = active;      // update alarm condition state
 }
 
+bool AlarmTask::isAlarmCondition() {
+    return _alarmCondition;        // return alarm condition state
+}
+
 void AlarmTask::taskFunction(void* pvParameters) {
     AlarmTask* self = static_cast<AlarmTask*>(pvParameters); // cast to object
 

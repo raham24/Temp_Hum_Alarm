@@ -7,16 +7,17 @@
 #include "led/led_task.h"
 #include "pins.h"
 
+#include "esp_sleep.h"
+#include <WiFi.h>
+
 // Tasks
 SensorTask sensorTask;      
 DisplayTask displayTask;    
 LedTask ledTask(LED_PIN);
 AlarmTask alarmTask(BUZZER_PIN);
 
-
 // Temperature monitoring - controls display error message and alarm condition
 void checkTemperatureAlarm() {
-  // Get current temperature from sensor task
   float temperature = sensorTask.getTemperature();
   bool sensorValid = sensorTask.isValid();
 
@@ -26,24 +27,19 @@ void checkTemperatureAlarm() {
 
   // Check temperature thresholds
   if (temperature > 30.0 || temperature < 20.0) {
-    // Temperature is out of range
-    // Set alarm condition active - buzzer/LED will only work if also enabled by user
+    // Out of range → alarm active
     alarmTask.setAlarmCondition(true);
     ledTask.setAlarmCondition(true);
 
-    // Show error message on display
     if (temperature > 30.0) {
       displayTask.setErrorMessage("Temp too high!");
     } else {
       displayTask.setErrorMessage("Temp too low!");
     }
   } else {
-    // Temperature is normal
-    // Deactivate alarm condition - buzzer/LED will stop even if enabled
+    // Normal temperature
     alarmTask.setAlarmCondition(false);
     ledTask.setAlarmCondition(false);
-
-    // Clear error message
     displayTask.setErrorMessage(nullptr);
   }
 }
@@ -65,9 +61,23 @@ void setup() {
 }
 
 void loop() {
+  // --- Normal periodic operations ---
   handleClient();
   updateTempReadings();
   checkTemperatureAlarm();
 
-  delay(10);
+  // --- Enter light sleep instead of busy waiting (delay) ---
+  // Don't sleep if alarm is actively sounding
+  if (!alarmTask.isAlarmCondition()) {
+    WiFi.setSleep(true);  // Allow WiFi modem-sleep
+
+    // Wake up after ~100 ms
+    esp_sleep_enable_timer_wakeup(100 * 1000);
+
+    // Enter light sleep (keeps RAM, tasks, WiFi)
+    esp_light_sleep_start();
+  } else {
+    // If alarm is active, avoid sleep so LED/Buzzer respond instantly
+    delay(10);
+  }
 }
