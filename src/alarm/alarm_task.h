@@ -10,6 +10,7 @@ public:
     void setEnabled(bool enable); // Enable/disable buzzer (remote control)
     bool getEnabled() { return _enabled; } // Get current alarm state
     void setAlarmCondition(bool active); // Set whether alarm condition (temp out of bounds) is active
+    bool isAlarmCondition(); // Returns alarm condition state
 
 private:
     static void taskFunction(void* pvParameters); // RTOS task function
