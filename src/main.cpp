@@ -8,6 +8,8 @@
 #include "pins.h"
 
 #include "esp_sleep.h"
+#include "esp_wifi.h"
+#include "esp_pm.h"
 #include <WiFi.h>
 
 // Tasks
@@ -80,8 +82,31 @@ void setup() {
   Serial.begin(9600);
   Serial.println("Starting Setup");
 
+  // === LOW POWER CONFIGURATION ===
+
+  // 1. Reduce CPU frequency to save power (240MHz -> 80MHz saves ~40% power)
+  setCpuFrequencyMhz(80);
+  Serial.print("CPU Frequency set to: ");
+  Serial.print(getCpuFrequencyMhz());
+  Serial.println(" MHz");
+
   connect_wifi();
-  initTemp();
+
+  // 2. Enable WiFi power save mode (modem sleeps between DTIM beacons)
+  // WIFI_PS_MIN_MODEM: Balance between power saving and responsiveness
+  WiFi.setSleep(WIFI_PS_MIN_MODEM);
+  Serial.println("WiFi Power Save Mode enabled");
+
+  // 3. Configure automatic light sleep for ESP32
+  // This allows light sleep during delay() and idle periods
+  esp_pm_config_esp32_t pm_config = {
+    .max_freq_mhz = 80,
+    .min_freq_mhz = 10,  // Scale down to 10MHz when idle
+    .light_sleep_enable = true  // Enable automatic light sleep
+  };
+  esp_pm_configure(&pm_config);
+  Serial.println("Power management configured");
+
   startServer();
 
   sensorTask.begin();     // DHT11 readings
@@ -89,7 +114,7 @@ void setup() {
   ledTask.begin();        // LED indicator
   alarmTask.begin();      // Alarm buzzer control
 
-  Serial.println("All tasks initialized");
+  Serial.println("All tasks initialized with low-power mode");
 }
 
 void loop() {
@@ -98,18 +123,15 @@ void loop() {
   updateTempReadings();
   checkTemperatureAlarm();
 
-  // --- Enter light sleep instead of busy waiting (delay) ---
-  // Don't sleep if alarm is actively sounding
-  if (!alarmTask.isAlarmCondition()) {
-    WiFi.setSleep(true);  // Allow WiFi modem-sleep
-
-    // Wake up after ~100 ms
-    esp_sleep_enable_timer_wakeup(100 * 1000);
-
-    // Enter light sleep (keeps RAM, tasks, WiFi)
-    esp_light_sleep_start();
-  } else {
-    // If alarm is active, avoid sleep so LED/Buzzer respond instantly
+  // --- Power-saving delay ---
+  // With automatic light sleep enabled, delay() will enter light sleep
+  // WiFi wakes up automatically for beacon reception and incoming packets
+  if (alarmTask.isAlarmCondition()) {
+    // If alarm is active, use shorter delay for responsive LED/buzzer
     delay(10);
+  } else {
+    // Normal operation: longer delay allows deeper power savings
+    // WiFi remains connected and wakes for incoming requests
+    delay(50);
   }
 }
